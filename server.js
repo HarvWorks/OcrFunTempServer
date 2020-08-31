@@ -5,10 +5,11 @@ const   bp              = require('body-parser'),
         jwtKey          = require('./keys/keys').jwtKey,
         path            = require('path'),
         app             = express(),
-        port            = process.env.PORT || 3000;
+        port            = process.env.PORT || 3000,
+        serverFunctions = require('./server/services/serverFunctions.js');
 
 // Use expressJWT
-app.use('/api', expressJWT({ secret: jwtKey }));
+app.use('/api', expressJWT({ secret: jwtKey, algorithms: ["HS256"] }));
 // Check token against redis database
 app.use('/api', (req, res, next) => serverFunctions.tokenChecker(req, res, next));
 
@@ -16,6 +17,8 @@ const server = app.listen(port, function () {
 	console.log(`server running on port ${port}`);
 });
 
+// CORS exceptions
+app.use((req, res, next) => serverFunctions.cors(req, res, next));
 app.use(helmet());
 app.use(bp.json());
 
