@@ -30,25 +30,20 @@ module.exports = async (req, res) => {
     req.body.email
   ];
 
-  bcrypt.hash(req.body.password, 10)
-    .then(hash => {
-      // Add the password to the query after the password has been hashed
-      queryData.push(hash)
-      return promisePool.execute(query, queryData)
-    })
-    .then(() => {
-      // Create a new jwt token for the user
-      const tsbToken = jwt.sign({
-        id: id,
-        exp: constants.expTime
-      }, serverKeys.jwtKey);
-      res.status(200).json(tsbToken);
-    })
-    .catch(error => {
-      if (error.status)
+  try {
+    const hash = await bcrypt.hash(req.body.password, 10);
+    queryData.push(hash);
+    await promisePool.execute(query, queryData);
+    const tsbToken = jwt.sign({
+      id: id,
+      exp: constants.expTime
+    }, serverKeys.jwtKey);
+    return res.status(200).json(tsbToken);
+  } catch (error) {
+    if (error.status)
         return res.status(error.status).json({ message: error.message });
       if (error.code === "ER_DUP_ENTRY")
         return res.status(400).json({ message: "User already exists, please login."});
       return res.status(400).json({ message: "admin", error: error });
-    });
+  }
 }

@@ -33,7 +33,7 @@ module.exports = async (req, res) => {
       exp: constants.expTime
     }, serverKeys.jwtKey);
     return res.status(200).json(tsbToken);
-  } catch (err) {
+  } catch (error) {
     if (error.status)
         return res.status(error.status).json({ message: error.message });
       return res.status(400).json({ message: "admin", error: error });
